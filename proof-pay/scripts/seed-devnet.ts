@@ -1,6 +1,6 @@
 /**
  * Seed a devnet demo: two merchants + one customer + 3 pre-existing attestations
- * across merchant A, so the submission video can open at "customer already trusted".
+ * across merchant A, so the demo opens at "customer already trusted".
  *
  * Expected env:
  *   PROOFPAY_PROGRAM_ID   — pinned in Anchor.toml (default: PayBhrjWjw4sCnu9Xuu8jWpj5G6Tuu1KEGkq8Z8Kye8)

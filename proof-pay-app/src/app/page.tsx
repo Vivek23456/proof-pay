@@ -54,18 +54,7 @@ export default function LandingPage() {
 
       <footer className="border-t border-border">
         <div className="container py-8 flex items-center justify-between text-xs text-textMuted">
-          <span>
-            Built for the{" "}
-            <a
-              className="underline decoration-dotted"
-              href="https://www.colosseum.com/frontier"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Solana Frontier Hackathon 2026
-            </a>
-            .
-          </span>
+          <span>ProofPay · portable on-chain reputation for Solana commerce.</span>
           <span>Powered by SAS-adjacent attestations on Solana devnet.</span>
         </div>
       </footer>

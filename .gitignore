@@ -8,3 +8,10 @@ dist/
 .next/
 .vercel/
 coverage/
+
+# agent / skill tooling — local only, never push
+.agents/
+skills/
+skills-lock.json
+.cursor/
+.claude/

@@ -4,8 +4,7 @@
 
 Pay any Solana merchant in USDC. Earn a portable on-chain attestation. Get an auto-applied discount at the next merchant that trusts your history. No per-brand loyalty accounts.
 
-Built for the [Solana Frontier Hackathon 2026](https://www.colosseum.com/frontier) (submission deadline **2026-05-11**).
-
+- **Status:** devnet MVP. Mainnet ships after audit.
 - **Devnet program:** [`ABSmAN3fhCdnEnAdRiKUWjpBwrZb2FZ41EYD3hnFN5xT`](https://explorer.solana.com/address/ABSmAN3fhCdnEnAdRiKUWjpBwrZb2FZ41EYD3hnFN5xT?cluster=devnet)
 - **IDL spec:** Anchor 0.30.1 (committed at [`proof-pay-app/src/lib/proof_pay.json`](./proof-pay-app/src/lib/proof_pay.json))
 
@@ -15,11 +14,9 @@ Built for the [Solana Frontier Hackathon 2026](https://www.colosseum.com/frontie
 
 > *"Enforce the relationship in code, not in a loyalty database."*
 
-Every Solana commerce stack today gives each merchant its own siloed loyalty token — Decal, for instance, won $20k at Breakout 2025 with exactly this per-merchant model. The user's history stays inside that merchant's app.
+Every Solana commerce stack today gives each merchant its own siloed loyalty token. Your purchase history at one merchant can't help you at the next one, even when both run on the same chain. Customers re-prove themselves at every storefront; merchants re-acquire customers from scratch.
 
 ProofPay flips it: your purchase history is **yours**, living on-chain as a portable attestation the customer owns. Any future merchant can read it, apply their own discount policy, and price accordingly — with zero integration between merchants.
-
-See [docs/wedge-shortlist.md](./docs/wedge-shortlist.md) for the full evidence appendix and why this wedge is unoccupied in the Colosseum winner corpus.
 
 ## Architecture
 
@@ -35,7 +32,7 @@ flowchart LR
   Program -->|discounted amount| Treasury
 ```
 
-**One Anchor program + one Next.js app + Solana Attestation Service (with internal PDA fallback).** Devnet-first; mainnet in v2.
+**One Anchor program + one Next.js app + Solana Attestation Service (with internal PDA fallback).** Devnet-first; mainnet next.
 
 ## Repository layout
 
@@ -69,16 +66,6 @@ proof-pay-app/                # Next.js 14 App Router frontend
       pda.ts                  # registry / counter / attestation PDA derivation
       config.ts               # PROGRAM_ID, USDC_MINT, RPC_URL (env-overridable)
       format.ts               # USDC + bps formatters
-
-docs/
-  wedge-shortlist.md          # why ProofPay, with winner evidence
-  mvp-spec.md                 # product stories, scope, demo script
-  prize-lane.md               # Frontier 2026 lane decision (Grand Champion primary)
-  competitive-landscape.md    # Decal, Humanship, ASSAP, Squads, Zebec
-  skills-map.md               # solo-builder time + gap analysis
-  demo-script.md              # 3-minute video shot list
-  submission-checklist.md     # what to attach to the Colosseum form
-  v2.md                       # out-of-scope backlog (frozen after May 1)
 
 .github/workflows/ci.yml      # anchor build + litesvm + next lint
 ```
@@ -128,7 +115,7 @@ NEXT_PUBLIC_USDC_MINT=Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr
 NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
 ```
 
-The defaults in `src/lib/config.ts` already point at the live devnet program, so the file is only required if you change anything.
+All three values are public (`NEXT_PUBLIC_*` is bundled into the browser; the defaults in `src/lib/config.ts` already point at the live devnet program). No secrets are required to run the dapp.
 
 ## The on-chain program in 200 words
 
@@ -143,7 +130,7 @@ One instruction per user-visible action:
    - Writes a `ProofPayAttestation` PDA seeded by `(customer, registry, counter)` and bumps the counter.
 4. **`close_merchant()`** — optional cleanup; refunds rent.
 
-The `attestation::USE_SAS_CPI` flag switches the attestation path from the internal PDA to a CPI into the Solana Attestation Service (`sas-lib`). Internal PDA is the MVP default. See [docs/mvp-spec.md](./docs/mvp-spec.md) for the SAS integration plan.
+The `attestation::USE_SAS_CPI` flag switches the attestation path from the internal PDA to a CPI into the Solana Attestation Service (`sas-lib`). Internal PDA is the MVP default.
 
 ## Frontend ↔ program wiring
 
@@ -166,47 +153,28 @@ Three LiteSVM tests cover the full flow in-process (no test validator needed):
 
 Run them with `cargo test --manifest-path tests/Cargo.toml`.
 
-## What's different from Decal, Humanship, ASSAP, Squads
+## Known limitations
 
-See [docs/competitive-landscape.md](./docs/competitive-landscape.md). One-sentence answer: **Decal gives each merchant a siloed loyalty token; ProofPay gives the customer a portable reputation that every Solana merchant can choose to honor.**
-
-## Demo script (≈ 3 min)
-
-Reproduced in [docs/demo-script.md](./docs/demo-script.md). Beats in order:
-
-1. Flash the README on-screen.
-2. Merchant A onboards (Phantom → name → policy "≥3 → 10% off").
-3. Customer pays 4.50 USDC at Merchant A. Attestation mints. Trust score = 1.
-4. Merchant B onboards (second wallet → "≥3 → 15% off").
-5. Customer pays twice more at Merchant A (trust score climbs to 3).
-6. Customer goes to Merchant B for the **first time ever**. UI pre-applies 15% off. Sign.
-7. Cut to Decal comparison + Szabo pullquote.
-8. Wrap with the "what's next" slide (Humanship, Stripe, SDK).
-
-## Known limitations (be honest in the submission)
-
-- Devnet only. Mainnet deploy + audit is v2.
-- USDC-only. Multi-token is v2.
-- No sybil resistance — one wallet = one customer. [Humanship ID](https://humanship.id) is a v2 integration partner, not a v1 feature.
+- Devnet only. Mainnet deploy + audit is next.
+- USDC-only. Multi-token is on the roadmap.
+- No sybil resistance — one wallet = one customer. A pluggable identity provider (e.g. Humanship ID) is the next integration.
 - Internal Attestation PDA path is default; SAS CPI path is wired but gated behind a `USE_SAS_CPI` feature flag until `sas-lib` version is pinned.
 - The committed IDL was hand-derived from the program source (Anchor 0.30 spec, real discriminators) because the host toolchain currently can't run `anchor idl build` against `ark-bn254`. The on-chain account decoders and instruction encoders all match the deployed binary; if you re-deploy with a code change that touches account layout, regenerate `proof-pay-app/src/lib/proof_pay.json` accordingly.
 
-## What's next (v2)
-
-Full backlog in [docs/v2.md](./docs/v2.md). Top 5:
+## Roadmap
 
 1. Mainnet deploy + SAS CPI path enabled.
-2. Humanship ID integration — sybil-resistant attestations.
+2. Sybil-resistant attestations via a pluggable identity provider.
 3. Merchant SDK (`@proof-pay/sdk`) for third-party checkout embedding.
-4. Compressed attestations via SAS PR #101 (Light Protocol) once merged + audited.
+4. Compressed attestations via SAS + Light Protocol once compression lands.
 5. Policy DSL — move from struct rules to a small expression language.
+6. Multi-token support beyond USDC.
 
 ## Acknowledgements
 
-- [Solana Attestation Service](https://launch.solana.com/docs/attestations) — our attestation primitive.
+- [Solana Attestation Service](https://launch.solana.com/docs/attestations) — the attestation primitive.
 - [Solana Pay](https://docs.solanapay.com) — the payment rail.
 - [Anchor](https://www.anchor-lang.com), [LiteSVM](https://github.com/LiteSVM/litesvm) — program dev + test.
-- Decal, Humanship, ASSAP, Squads, Zebec — prior art we learned from. Read [docs/competitive-landscape.md](./docs/competitive-landscape.md) for the receipts.
 
 ## License
 
