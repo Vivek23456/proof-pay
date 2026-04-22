@@ -1,0 +1,22 @@
+[package]
+name = "proof_pay_tests"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "lib.rs"
+
+[dependencies]
+proof_pay = { path = "../programs/proof_pay", features = ["no-entrypoint"] }
+anchor-lang = { workspace = true }
+anchor-spl = { workspace = true }
+litesvm = "0.3"
+litesvm-token = "0.3"
+solana-sdk = "1.18"
+solana-program = { workspace = true }
+spl-token = { workspace = true }
+spl-associated-token-account = { version = "3", features = ["no-entrypoint"] }
+
+[dev-dependencies]
+anyhow = "1"

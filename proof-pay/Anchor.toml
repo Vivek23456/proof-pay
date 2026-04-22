@@ -1,0 +1,25 @@
+[toolchain]
+anchor_version = "0.30.1"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.devnet]
+proof_pay = "ABSmAN3fhCdnEnAdRiKUWjpBwrZb2FZ41EYD3hnFN5xT"
+
+[programs.localnet]
+proof_pay = "PayBhrjWjw4sCnu9Xuu8jWpj5G6Tuu1KEGkq8Z8Kye8"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "Devnet"
+wallet = "~/.config/solana/id.json"
+
+[workspace]
+members = ["programs/*"]
+
+[scripts]
+test = "cargo test --manifest-path tests/Cargo.toml"

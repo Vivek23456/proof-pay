@@ -1,0 +1,65 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  anchor-build-test:
+    name: proof_pay (anchor build + litesvm tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: proof-pay
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.79.0"
+          components: rustfmt,clippy
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: proof-pay
+
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/v1.18.26/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+
+      - name: Install Anchor CLI
+        run: |
+          cargo install --locked --version 0.30.1 anchor-cli
+
+      - name: Anchor build
+        run: anchor build
+
+      - name: LiteSVM tests
+        run: cargo test --manifest-path tests/Cargo.toml
+
+  frontend-lint-build:
+    name: proof-pay-app (lint + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: proof-pay-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install deps
+        run: npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+
+      - name: Lint
+        run: npm run lint --if-present
+
+      - name: Build
+        run: npm run build

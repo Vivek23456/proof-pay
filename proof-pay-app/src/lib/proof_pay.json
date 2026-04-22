@@ -1,0 +1,250 @@
+{
+  "address": "ABSmAN3fhCdnEnAdRiKUWjpBwrZb2FZ41EYD3hnFN5xT",
+  "metadata": {
+    "name": "proof_pay",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Portable cross-merchant customer reputation on Solana."
+  },
+  "instructions": [
+    {
+      "name": "register_merchant",
+      "discriminator": [238, 245, 77, 132, 161, 88, 216, 248],
+      "accounts": [
+        { "name": "authority", "writable": true, "signer": true },
+        {
+          "name": "registry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              { "kind": "const", "value": [109, 101, 114, 99, 104, 97, 110, 116] },
+              { "kind": "account", "path": "authority" }
+            ]
+          }
+        },
+        { "name": "usdc_mint" },
+        { "name": "treasury_ata" },
+        { "name": "system_program", "address": "11111111111111111111111111111111" }
+      ],
+      "args": [
+        { "name": "name", "type": "string" }
+      ]
+    },
+    {
+      "name": "set_policy",
+      "discriminator": [40, 133, 12, 157, 235, 202, 2, 132],
+      "accounts": [
+        { "name": "authority", "signer": true },
+        {
+          "name": "registry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              { "kind": "const", "value": [109, 101, 114, 99, 104, 97, 110, 116] },
+              { "kind": "account", "path": "authority" }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "rules",
+          "type": { "vec": { "defined": { "name": "PolicyRule" } } }
+        }
+      ]
+    },
+    {
+      "name": "pay_and_attest",
+      "discriminator": [21, 55, 107, 251, 19, 220, 128, 149],
+      "accounts": [
+        { "name": "customer", "writable": true, "signer": true },
+        {
+          "name": "registry",
+          "pda": {
+            "seeds": [
+              { "kind": "const", "value": [109, 101, 114, 99, 104, 97, 110, 116] },
+              { "kind": "account", "path": "merchant_authority" }
+            ]
+          }
+        },
+        { "name": "authority" },
+        { "name": "merchant_authority" },
+        { "name": "usdc_mint" },
+        { "name": "customer_ata", "writable": true },
+        { "name": "treasury_ata", "writable": true },
+        {
+          "name": "customer_counter",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              { "kind": "const", "value": [99, 111, 117, 110, 116, 101, 114] },
+              { "kind": "account", "path": "customer" }
+            ]
+          }
+        },
+        { "name": "attestation", "writable": true },
+        { "name": "token_program", "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA" },
+        { "name": "system_program", "address": "11111111111111111111111111111111" },
+        { "name": "rent", "address": "SysvarRent111111111111111111111111111111111" }
+      ],
+      "args": [
+        { "name": "amount_usdc", "type": "u64" }
+      ]
+    },
+    {
+      "name": "close_merchant",
+      "discriminator": [138, 96, 102, 11, 220, 136, 154, 11],
+      "accounts": [
+        { "name": "authority", "writable": true, "signer": true },
+        {
+          "name": "registry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              { "kind": "const", "value": [109, 101, 114, 99, 104, 97, 110, 116] },
+              { "kind": "account", "path": "authority" }
+            ]
+          }
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "MerchantRegistry",
+      "discriminator": [30, 206, 224, 3, 61, 48, 215, 115]
+    },
+    {
+      "name": "ProofPayAttestation",
+      "discriminator": [232, 114, 134, 162, 172, 218, 70, 155]
+    },
+    {
+      "name": "CustomerCounter",
+      "discriminator": [210, 46, 219, 50, 118, 203, 216, 24]
+    }
+  ],
+  "events": [
+    {
+      "name": "MerchantRegistered",
+      "discriminator": [202, 61, 140, 95, 139, 239, 17, 83]
+    },
+    {
+      "name": "PolicyUpdated",
+      "discriminator": [225, 112, 112, 67, 95, 236, 245, 161]
+    },
+    {
+      "name": "PaymentRecorded",
+      "discriminator": [214, 3, 212, 116, 135, 35, 104, 98]
+    }
+  ],
+  "errors": [
+    { "code": 6000, "name": "InvalidMerchantName",  "msg": "Merchant name is empty or exceeds MAX_MERCHANT_NAME_BYTES." },
+    { "code": 6001, "name": "TooManyPolicyRules",   "msg": "Too many policy rules (max 3 in MVP)." },
+    { "code": 6002, "name": "InvalidDiscountBps",   "msg": "Policy rule discount_bps exceeds MAX_DISCOUNT_BPS." },
+    { "code": 6003, "name": "TreasuryOwnerMismatch","msg": "Treasury ATA owner does not match merchant authority." },
+    { "code": 6004, "name": "TreasuryMintMismatch", "msg": "Treasury ATA mint does not match registered USDC mint." },
+    { "code": 6005, "name": "CustomerMintMismatch", "msg": "Customer ATA mint does not match registered USDC mint." },
+    { "code": 6006, "name": "ZeroAmount",           "msg": "Payment amount must be greater than zero." },
+    { "code": 6007, "name": "MathOverflow",         "msg": "Arithmetic overflow computing discount." },
+    { "code": 6008, "name": "UnauthorizedMerchant", "msg": "Provided merchant authority does not match the registry." },
+    { "code": 6009, "name": "CounterSeedMismatch",  "msg": "Customer counter PDA seed mismatch." }
+  ],
+  "types": [
+    {
+      "name": "PolicyRule",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "min_attestations", "type": "u8" },
+          { "name": "discount_bps", "type": "u16" },
+          { "name": "valid_until", "type": "i64" }
+        ]
+      }
+    },
+    {
+      "name": "MerchantRegistry",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "authority", "type": "pubkey" },
+          { "name": "treasury_ata", "type": "pubkey" },
+          { "name": "usdc_mint", "type": "pubkey" },
+          { "name": "policy_count", "type": "u8" },
+          {
+            "name": "policy",
+            "type": { "array": [{ "defined": { "name": "PolicyRule" } }, 3] }
+          },
+          { "name": "created_at", "type": "i64" },
+          { "name": "bump", "type": "u8" },
+          { "name": "name", "type": "string" }
+        ]
+      }
+    },
+    {
+      "name": "ProofPayAttestation",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "merchant", "type": "pubkey" },
+          { "name": "customer", "type": "pubkey" },
+          { "name": "amount_paid", "type": "u64" },
+          { "name": "discount_bps_applied", "type": "u16" },
+          { "name": "timestamp", "type": "i64" },
+          { "name": "nonce", "type": "u64" },
+          { "name": "bump", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "CustomerCounter",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "customer", "type": "pubkey" },
+          { "name": "attestation_count", "type": "u64" },
+          { "name": "bump", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "MerchantRegistered",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "authority", "type": "pubkey" },
+          { "name": "registry", "type": "pubkey" },
+          { "name": "name", "type": "string" },
+          { "name": "treasury_ata", "type": "pubkey" },
+          { "name": "created_at", "type": "i64" }
+        ]
+      }
+    },
+    {
+      "name": "PolicyUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "registry", "type": "pubkey" },
+          { "name": "rule_count", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "PaymentRecorded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "customer", "type": "pubkey" },
+          { "name": "merchant", "type": "pubkey" },
+          { "name": "amount_requested", "type": "u64" },
+          { "name": "amount_paid", "type": "u64" },
+          { "name": "discount_bps", "type": "u16" },
+          { "name": "prior_attestations", "type": "u64" },
+          { "name": "new_attestation_count", "type": "u64" },
+          { "name": "timestamp", "type": "i64" }
+        ]
+      }
+    }
+  ]
+}

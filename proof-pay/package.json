@@ -1,0 +1,21 @@
+{
+  "name": "proof-pay-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ProofPay — portable cross-merchant customer reputation on Solana.",
+  "scripts": {
+    "build": "anchor build",
+    "test:program": "cargo test --manifest-path tests/Cargo.toml",
+    "deploy:devnet": "anchor deploy --provider.cluster devnet",
+    "idl:generate": "anchor idl parse --file programs/proof_pay/src/lib.rs -o target/idl/proof_pay.json",
+    "seed:devnet": "ts-node scripts/seed-devnet.ts"
+  },
+  "devDependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
+    "@solana/spl-token": "^0.1.8",
+    "@solana/web3.js": "^1.95.0",
+    "@types/node": "^20.11.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.0"
+  }
+}
