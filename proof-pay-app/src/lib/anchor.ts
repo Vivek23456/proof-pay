@@ -38,7 +38,8 @@ export function makeProvider(connection: Connection, wallet: WalletContextState)
 }
 
 export function makeProgram(provider: AnchorProvider): ProofPayProgram {
-  return new Program(IDL, PROGRAM_ID, provider);
+  // Anchor 0.30+: programId aata hai IDL ke "address" field se, alag pass nahi karna.
+  return new Program(IDL, provider);
 }
 
 /**
