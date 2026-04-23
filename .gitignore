@@ -8,6 +8,7 @@ dist/
 .next/
 .vercel/
 coverage/
+*.tsbuildinfo
 
 # agent / skill tooling — local only, never push
 .agents/
