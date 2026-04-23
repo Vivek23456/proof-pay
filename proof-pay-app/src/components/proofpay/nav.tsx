@@ -1,9 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 export function Nav() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <header className="border-b border-border">
       <div className="container flex h-16 items-center justify-between">
@@ -32,14 +39,21 @@ export function Nav() {
           </a>
         </nav>
 
-        <WalletMultiButton
-          style={{
-            background: "#7c5cff",
-            borderRadius: 12,
-            height: 38,
-            lineHeight: "38px",
-          }}
-        />
+        {mounted ? (
+          <WalletMultiButton
+            style={{
+              background: "#7c5cff",
+              borderRadius: 12,
+              height: 38,
+              lineHeight: "38px",
+            }}
+          />
+        ) : (
+          <div
+            aria-hidden
+            className="h-[38px] w-[170px] rounded-xl bg-accent/20"
+          />
+        )}
       </div>
     </header>
   );
