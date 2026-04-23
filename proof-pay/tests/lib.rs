@@ -9,7 +9,7 @@
 //!     cargo test --manifest-path tests/Cargo.toml
 
 use anchor_lang::prelude::*;
-use anchor_lang::{AnchorDeserialize, AnchorSerialize, InstructionData, ToAccountMetas};
+use anchor_lang::{InstructionData, ToAccountMetas};
 use litesvm::LiteSVM;
 use litesvm_token::{CreateAssociatedTokenAccount, CreateMint, MintTo};
 use proof_pay::state::{CustomerCounter, MerchantRegistry, PolicyRule, ProofPayAttestation};
@@ -52,12 +52,12 @@ fn setup() -> (LiteSVM, Keypair, Keypair, Keypair, Pubkey, Pubkey, Pubkey) {
         .expect("create USDC mint");
 
     let treasury_ata = CreateAssociatedTokenAccount::new(&mut svm, &payer, &usdc_mint)
-        .owner(&merchant_authority.pubkey())
+        .owner(&merchant_authority)
         .send()
         .expect("create merchant treasury ATA");
 
     let customer_ata = CreateAssociatedTokenAccount::new(&mut svm, &payer, &usdc_mint)
-        .owner(&customer.pubkey())
+        .owner(&customer)
         .send()
         .expect("create customer ATA");
 
@@ -159,14 +159,10 @@ fn pay_and_attest(
     let (customer_counter, _) = counter_pda(&customer.pubkey());
 
     let nonce = svm
-        .get_account(&customer_counter)
-        .ok()
-        .flatten()
-        .and_then(|acc| {
-            CustomerCounter::try_deserialize(&mut &acc.data[..]).ok()
-        })
-        .map(|c| c.attestation_count)
-        .unwrap_or(0);
+    .get_account(&customer_counter)
+    .and_then(|acc| CustomerCounter::try_deserialize(&mut &acc.data[..]).ok())
+    .map(|c| c.attestation_count)
+    .unwrap_or(0);
 
     let (attestation, _) = attestation_pda(&customer.pubkey(), &registry, nonce);
 
@@ -205,7 +201,7 @@ fn happy_path_register_and_single_payment() {
     let (mut svm, payer, merchant_auth, customer, usdc_mint, treasury_ata, customer_ata) = setup();
     let registry = register_merchant(&mut svm, &payer, &merchant_auth, &usdc_mint, &treasury_ata, "Cafe Solana");
 
-    let raw = svm.get_account(&registry).unwrap().unwrap();
+    let raw = svm.get_account(&registry).unwrap();
     let parsed = MerchantRegistry::try_deserialize(&mut &raw.data[..]).unwrap();
     assert_eq!(parsed.name, "Cafe Solana");
     assert_eq!(parsed.authority, merchant_auth.pubkey());
@@ -222,7 +218,7 @@ fn happy_path_register_and_single_payment() {
     );
 
     let (counter_pk, _) = counter_pda(&customer.pubkey());
-    let raw = svm.get_account(&counter_pk).unwrap().unwrap();
+    let raw = svm.get_account(&counter_pk).unwrap();
     let counter = CustomerCounter::try_deserialize(&mut &raw.data[..]).unwrap();
     assert_eq!(counter.attestation_count, 1);
 }
@@ -251,14 +247,14 @@ fn discount_applies_after_threshold() {
     }
 
     let (counter_pk, _) = counter_pda(&customer.pubkey());
-    let raw = svm.get_account(&counter_pk).unwrap().unwrap();
+    let raw = svm.get_account(&counter_pk).unwrap();
     let counter = CustomerCounter::try_deserialize(&mut &raw.data[..]).unwrap();
     assert_eq!(counter.attestation_count, 3);
 
     // Verify the third attestation recorded a 15% discount.
     let (_, reg) = (counter_pk, registry_pda(&merchant_auth.pubkey()).0);
     let (third_att, _) = attestation_pda(&customer.pubkey(), &reg, 2);
-    let raw = svm.get_account(&third_att).unwrap().unwrap();
+    let raw = svm.get_account(&third_att).unwrap();
     let att = ProofPayAttestation::try_deserialize(&mut &raw.data[..]).unwrap();
     assert_eq!(att.discount_bps_applied, 1_500);
     assert_eq!(att.amount_paid, 8_500_000); // 10 USDC - 15% = 8.50
@@ -271,7 +267,7 @@ fn portable_reputation_across_two_merchants() {
     svm.airdrop(&customer.pubkey(), 10_000_000_000).unwrap();
     // Reuse customer_ata's keypair? No — we need a fresh one; let's rebuild it.
     let customer_ata_pk = CreateAssociatedTokenAccount::new(&mut svm, &payer, &usdc_mint)
-        .owner(&customer.pubkey())
+        .owner(&customer)
         .send()
         .expect("customer ATA");
     MintTo::new(&mut svm, &payer, &usdc_mint, &customer_ata_pk, 1_000_000_000)
@@ -282,7 +278,7 @@ fn portable_reputation_across_two_merchants() {
     let merchant_b = Keypair::new();
     svm.airdrop(&merchant_b.pubkey(), 10_000_000_000).unwrap();
     let treasury_b = CreateAssociatedTokenAccount::new(&mut svm, &payer, &usdc_mint)
-        .owner(&merchant_b.pubkey())
+        .owner(&merchant_b)
         .send()
         .unwrap();
 
@@ -317,7 +313,7 @@ fn portable_reputation_across_two_merchants() {
         &customer_ata_pk,
         10_000_000,
     );
-    let raw = svm.get_account(&att_pk).unwrap().unwrap();
+    let raw = svm.get_account(&att_pk).unwrap();
     let att = ProofPayAttestation::try_deserialize(&mut &raw.data[..]).unwrap();
     assert_eq!(att.discount_bps_applied, 2_000);
     assert_eq!(att.amount_paid, 8_000_000);

@@ -11,8 +11,8 @@ path = "lib.rs"
 proof_pay = { path = "../programs/proof_pay", features = ["no-entrypoint"] }
 anchor-lang = { workspace = true }
 anchor-spl = { workspace = true }
-litesvm = "0.3"
-litesvm-token = "0.3"
+litesvm = "0.2"
+litesvm-token = "0.2"
 solana-sdk = "1.18"
 solana-program = { workspace = true }
 spl-token = { workspace = true }
