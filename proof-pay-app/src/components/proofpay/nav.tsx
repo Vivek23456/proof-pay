@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { BadgeCheck } from "lucide-react";
 
 export function Nav() {
   const [mounted, setMounted] = useState(false);
@@ -12,11 +13,11 @@ export function Nav() {
   }, []);
 
   return (
-    <header className="border-b border-border">
+    <header className="relative z-10 border-b border-border/80 backdrop-blur supports-[backdrop-filter]:bg-bg/60">
       <div className="container flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-accent/20 text-accent text-sm font-semibold">
-            P
+        <Link href="/" className="group flex items-center gap-2.5">
+          <span className="relative inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-accent/40 shadow-[0_0_24px_-6px_rgba(124,92,255,0.65)] transition group-hover:shadow-[0_0_32px_-4px_rgba(124,92,255,0.85)]">
+            <BadgeCheck className="h-5 w-5 text-white" strokeWidth={2.25} />
           </span>
           <span className="font-semibold tracking-tight">ProofPay</span>
           <span className="chip ml-2">devnet</span>

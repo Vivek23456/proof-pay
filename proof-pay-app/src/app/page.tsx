@@ -1,14 +1,28 @@
 import Link from "next/link";
 import { Nav } from "@/components/proofpay/nav";
+import { Spotlight } from "@/components/ui/spotlight";
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen relative overflow-hidden">
       <Nav />
 
-      <section className="container py-20 max-w-4xl">
+      <section className="relative container py-20 max-w-4xl">
+        <Spotlight
+          className="-top-40 left-0 md:-top-20 md:left-60"
+          fill="#7c5cff"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10 opacity-40 blur-3xl"
+          style={{
+            background:
+              "radial-gradient(600px circle at 30% 20%, rgba(124, 92, 255, 0.55) 0%, transparent 60%), radial-gradient(420px circle at 80% 40%, rgba(62, 207, 142, 0.35) 0%, transparent 60%)",
+          }}
+        />
+
         <span className="chip mb-6">solana · usdc · attestation layer</span>
-        <h1 className="text-4xl md:text-6xl font-semibold tracking-tight leading-tight">
+        <h1 className="text-4xl md:text-6xl font-semibold tracking-tighter leading-[1.05] text-balance">
           Your Solana purchase history is{" "}
           <span className="text-accent">yours</span>, not each merchant&apos;s database.
         </h1>

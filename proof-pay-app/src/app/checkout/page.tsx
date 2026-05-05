@@ -11,6 +11,7 @@ import {
 } from "@solana/spl-token";
 import { BN } from "@coral-xyz/anchor";
 import { toast } from "sonner";
+import confetti from "canvas-confetti";
 
 import { Nav } from "@/components/proofpay/nav";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,26 @@ interface CheckoutQuote {
   discountBps: number;
   netAmount: bigint;
   bestRule: OnChainRule | null;
+}
+
+/** Two-burst confetti in the brand palette, fired on successful payment. */
+function celebrate() {
+  if (typeof window === "undefined") return;
+  const colors = ["#7c5cff", "#3ecf8e", "#ffffff"];
+  confetti({
+    particleCount: 110,
+    spread: 80,
+    startVelocity: 38,
+    origin: { y: 0.65, x: 0.35 },
+    colors,
+  });
+  confetti({
+    particleCount: 110,
+    spread: 80,
+    startVelocity: 38,
+    origin: { y: 0.65, x: 0.65 },
+    colors,
+  });
 }
 
 function bestDiscountBps(
@@ -246,6 +267,7 @@ function CheckoutInner() {
         signature: sig,
       });
       setAttestationCount((c) => (c === null ? 1n : c + 1n));
+      celebrate();
       toast.success("Paid + attested", {
         description: `${formatUsdc(quote.netAmount)} sent. Sig ${sig.slice(0, 8)}…`,
       });
