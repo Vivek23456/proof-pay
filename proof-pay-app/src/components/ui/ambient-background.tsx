@@ -5,15 +5,27 @@ import { NetworkPackets } from "./network-packets";
  * events disabled) so it never blocks interaction. Motion components:
  *
  *   1. Two large blurry gradient orbs that drift slowly across the viewport.
- *   2. A faint SVG "globe" — meridians + parallels — that rotates over a minute.
+ *   2. A glowing SVG "network globe" — meridians + parallels with pulsing
+ *      green data hubs on its surface — that rotates over a minute.
  *   3. A subtle dot grid that gives the site a faint tech texture.
  *   4. Periodic "payment packets" — bright dots with glowing trails that
  *      shoot across the screen at varied angles, like money flying through
  *      the network.
  *
- * All effects are pure CSS animations — no JS, no reflow, GPU-friendly
- * transforms only.
+ * All effects are pure CSS / SMIL animations — no JS, no reflow,
+ * GPU-friendly transforms only.
  */
+
+// Fixed positions (in the globe's 200×200 SVG viewBox) for the pulsing
+// data nodes — picked to spread evenly around the visible sphere face.
+const GLOBE_NODES: Array<{ x: number; y: number }> = [
+  { x: 72, y: 58 },
+  { x: 138, y: 70 },
+  { x: 95, y: 100 },
+  { x: 60, y: 130 },
+  { x: 145, y: 130 },
+  { x: 95, y: 160 },
+];
 export function AmbientBackground() {
   return (
     <div
@@ -52,30 +64,48 @@ export function AmbientBackground() {
         }}
       />
 
-      {/* Slow-rotating "globe" anchored bottom-right. Pure SVG: a sphere drawn
-          as meridians + parallels, with a faint accent stroke. Spins once per
-          minute — perceptible but never demands attention. */}
-      <div className="absolute -right-40 -bottom-40 h-[480px] w-[480px] opacity-[0.18] animate-slow-spin md:h-[640px] md:w-[640px]">
+      {/* Slow-rotating "network globe" anchored bottom-right. A sphere drawn
+          as meridians + parallels with a soft inner glow, brighter rim, and
+          a handful of pulsing "data nodes" (green hubs) on its surface — a
+          stylized world-map-of-payments. Spins once a minute and is wrapped
+          in a drop-shadow that bleeds purple haze into the corner. */}
+      <div
+        className="absolute -right-32 -bottom-32 h-[540px] w-[540px] opacity-[0.55] animate-slow-spin md:h-[720px] md:w-[720px]"
+        style={{
+          filter: "drop-shadow(0 0 60px rgba(124, 92, 255, 0.35))",
+        }}
+      >
         <svg
           viewBox="0 0 200 200"
           xmlns="http://www.w3.org/2000/svg"
           className="h-full w-full"
         >
           <defs>
-            <radialGradient id="globe-fade" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#7c5cff" stopOpacity="0.0" />
-              <stop offset="100%" stopColor="#7c5cff" stopOpacity="0.6" />
+            {/* Inner sphere glow — top-left highlight, fading out. Sells the
+                3D-ish depth of the globe without fully filling it. */}
+            <radialGradient id="globe-inner" cx="38%" cy="38%" r="72%">
+              <stop offset="0%" stopColor="rgba(124, 92, 255, 0.32)" />
+              <stop offset="55%" stopColor="rgba(124, 92, 255, 0.08)" />
+              <stop offset="100%" stopColor="rgba(124, 92, 255, 0)" />
             </radialGradient>
+            {/* Soft halo for the data-node pulses. */}
+            <filter id="node-glow" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur stdDeviation="1.4" />
+            </filter>
           </defs>
 
-          {/* Outer rim */}
+          {/* Inner glow fill */}
+          <circle cx="100" cy="100" r="98" fill="url(#globe-inner)" />
+
+          {/* Outer rim — brighter than the lat/long lines, frames the sphere. */}
           <circle
             cx="100"
             cy="100"
             r="98"
             fill="none"
-            stroke="url(#globe-fade)"
-            strokeWidth="0.6"
+            stroke="#7c5cff"
+            strokeOpacity="0.85"
+            strokeWidth="0.7"
           />
 
           {/* Parallels (latitude lines) — ellipses with varying Y radius. */}
@@ -88,8 +118,8 @@ export function AmbientBackground() {
               ry={r}
               fill="none"
               stroke="#7c5cff"
-              strokeOpacity="0.35"
-              strokeWidth="0.4"
+              strokeOpacity="0.55"
+              strokeWidth="0.5"
             />
           ))}
 
@@ -103,9 +133,51 @@ export function AmbientBackground() {
               ry="98"
               fill="none"
               stroke="#7c5cff"
-              strokeOpacity="0.35"
-              strokeWidth="0.4"
+              strokeOpacity="0.55"
+              strokeWidth="0.5"
             />
+          ))}
+
+          {/* Pulsing data nodes — green "merchant hubs" scattered on the
+              sphere. Each is two layered circles: a soft halo (Gaussian
+              blur) and a bright core. SMIL animations stagger the pulses
+              so they fire at different times and the surface always has
+              activity somewhere. */}
+          {GLOBE_NODES.map((n, i) => (
+            <g key={`node-${i}`}>
+              <circle
+                cx={n.x}
+                cy={n.y}
+                r="3"
+                fill="#3ecf8e"
+                opacity="0.4"
+                filter="url(#node-glow)"
+              >
+                <animate
+                  attributeName="opacity"
+                  values="0.15;0.55;0.15"
+                  dur="3s"
+                  begin={`${i * 0.5}s`}
+                  repeatCount="indefinite"
+                />
+                <animate
+                  attributeName="r"
+                  values="2.5;5;2.5"
+                  dur="3s"
+                  begin={`${i * 0.5}s`}
+                  repeatCount="indefinite"
+                />
+              </circle>
+              <circle cx={n.x} cy={n.y} r="1.1" fill="#3ecf8e">
+                <animate
+                  attributeName="opacity"
+                  values="0.7;1;0.7"
+                  dur="3s"
+                  begin={`${i * 0.5}s`}
+                  repeatCount="indefinite"
+                />
+              </circle>
+            </g>
           ))}
         </svg>
       </div>
