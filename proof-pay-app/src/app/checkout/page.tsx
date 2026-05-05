@@ -24,6 +24,7 @@ import {
 import { formatBps, formatUsdc, parseUsdc, shortAddress } from "@/lib/format";
 import { TrustScoreCard } from "@/components/proofpay/trust-score-card";
 import { ReceiptView } from "@/components/proofpay/receipt-view";
+import { FaucetCard } from "@/components/proofpay/faucet-card";
 import { useProofPayProgram } from "@/lib/anchor";
 
 interface OnChainRule {
@@ -363,6 +364,8 @@ function CheckoutInner() {
 
         <aside className="space-y-4">
           <TrustScoreCard attestationCount={attestationCount} />
+
+          <FaucetCard />
 
           <div className="card text-sm">
             <h3 className="font-semibold mb-2">How portable reputation works</h3>

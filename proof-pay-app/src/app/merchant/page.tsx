@@ -11,6 +11,7 @@ import { shortAddress } from "@/lib/format";
 import { PolicyEditor, type DraftRule } from "@/components/proofpay/policy-editor";
 import { TxList } from "@/components/proofpay/tx-list";
 import { OnboardPanel } from "@/components/proofpay/onboard-panel";
+import { FaucetCard } from "@/components/proofpay/faucet-card";
 import { useProofPayProgram } from "@/lib/anchor";
 
 interface MerchantState {
@@ -144,10 +145,16 @@ export default function MerchantDashboardPage() {
         </section>
 
         {!state.exists ? (
-          <OnboardPanel />
+          <div className="grid gap-6 md:grid-cols-[1fr,320px] items-start">
+            <OnboardPanel />
+            <FaucetCard />
+          </div>
         ) : (
           <>
-            <PolicyEditor />
+            <div className="grid gap-6 md:grid-cols-[1fr,320px] items-start">
+              <PolicyEditor />
+              <FaucetCard />
+            </div>
             <TxList merchantRegistry={state.registry} />
           </>
         )}
