@@ -26,6 +26,7 @@ import { formatBps, formatUsdc, parseUsdc, shortAddress } from "@/lib/format";
 import { TrustScoreCard } from "@/components/proofpay/trust-score-card";
 import { ReceiptView } from "@/components/proofpay/receipt-view";
 import { FaucetCard } from "@/components/proofpay/faucet-card";
+import { PaymentRoute } from "@/components/ui/payment-route";
 import { useProofPayProgram } from "@/lib/anchor";
 
 interface OnChainRule {
@@ -106,6 +107,7 @@ function CheckoutInner() {
   const [attestationCount, setAttestationCount] = useState<bigint | null>(null);
   const [merchant, setMerchant] = useState<MerchantSnapshot | null>(null);
   const [busy, setBusy] = useState(false);
+  const [showRoute, setShowRoute] = useState(false);
   const [lastReceipt, setLastReceipt] = useState<{
     amount: bigint;
     discountBps: number;
@@ -293,7 +295,11 @@ function CheckoutInner() {
         signature: sig,
       });
       setAttestationCount((c) => (c === null ? 1n : c + 1n));
-      celebrate();
+      // Fire the cross-screen "USDC route" overlay before the confetti so the
+      // particle and stroke draw on top of a clean canvas; confetti follows
+      // ~120 ms later for layered drama.
+      setShowRoute(true);
+      window.setTimeout(celebrate, 120);
       toast.success("Paid + attested", {
         description: `${formatUsdc(quote.netAmount)} sent. Sig ${sig.slice(0, 8)}…`,
       });
@@ -309,6 +315,7 @@ function CheckoutInner() {
 
   return (
     <main className="min-h-screen">
+      <PaymentRoute show={showRoute} onComplete={() => setShowRoute(false)} />
       <Nav />
       <div className="container max-w-4xl py-10 grid gap-6 md:grid-cols-[1fr,320px]">
         <section className="card">

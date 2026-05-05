@@ -61,6 +61,23 @@ const config: Config = {
           "60%": { opacity: "1", transform: "scale(1.12)" },
           "100%": { opacity: "1", transform: "scale(1)" },
         },
+        // Lighthouse: full clockwise rotation of the beam wedge.
+        "beam-spin": {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
+        },
+        // Lighthouse: scattered dots flare brightly for ~5% of the cycle then
+        // dim — tied to the beam's 8s rotation by setting per-dot delays so
+        // dots roughly light up as the beam crosses them.
+        "beam-flare": {
+          "0%, 5%": { opacity: "1", transform: "scale(2)" },
+          "20%, 100%": { opacity: "0.25", transform: "scale(1)" },
+        },
+        // Payment route: trail dot zooms across, fades.
+        "route-fade": {
+          "0%, 70%": { opacity: "1" },
+          "100%": { opacity: "0" },
+        },
       },
       animation: {
         spotlight: "spotlight 2s ease 0.2s 1 forwards",
@@ -71,6 +88,9 @@ const config: Config = {
         "pulse-soft": "pulse-soft 2s ease-in-out infinite",
         "fade-up": "fade-up 0.6s ease-out forwards",
         "pop-in": "pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "beam-spin": "beam-spin 8s linear infinite",
+        "beam-flare": "beam-flare 8s linear infinite",
+        "route-fade": "route-fade 1.8s ease-in-out forwards",
       },
     },
   },
