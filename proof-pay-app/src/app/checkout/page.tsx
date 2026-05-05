@@ -12,6 +12,7 @@ import {
 import { BN } from "@coral-xyz/anchor";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
+import { Lock } from "lucide-react";
 
 import { Nav } from "@/components/proofpay/nav";
 import { Button } from "@/components/ui/button";
@@ -93,6 +94,13 @@ function CheckoutInner() {
   const { publicKey, connected } = useWallet();
   const { program, provider } = useProofPayProgram();
 
+  const refParam = params.get("ref");
+  const productLabel = params.get("label");
+  // "Locked" mode means the merchant generated this URL with an amount and a
+  // reference pubkey — the customer is not allowed to edit either field, and
+  // the tx must include the reference so the merchant can later confirm it.
+  const lockedMode = Boolean(params.get("merchant")) && Boolean(params.get("amount"));
+
   const [merchantInput, setMerchantInput] = useState(params.get("merchant") ?? "");
   const [amountInput, setAmountInput] = useState(params.get("amount") ?? "10");
   const [attestationCount, setAttestationCount] = useState<bigint | null>(null);
@@ -111,6 +119,15 @@ function CheckoutInner() {
       return null;
     }
   }, [merchantInput]);
+
+  const referencePubkey = useMemo(() => {
+    if (!refParam) return null;
+    try {
+      return new PublicKey(refParam);
+    } catch {
+      return null;
+    }
+  }, [refParam]);
 
   const parsedAmount = useMemo(() => {
     try {
@@ -258,6 +275,14 @@ function CheckoutInner() {
           systemProgram: SystemProgram.programId,
           rent: SYSVAR_RENT_PUBKEY,
         })
+        // Solana Pay reference: a non-signer non-writable marker pubkey the
+        // merchant used to identify this specific invoice. When present, the
+        // merchant's PaymentWatcher will find the tx via getSignaturesForAddress.
+        .remainingAccounts(
+          referencePubkey
+            ? [{ pubkey: referencePubkey, isSigner: false, isWritable: false }]
+            : [],
+        )
         .instruction();
       tx.add(payIx);
 
@@ -292,6 +317,21 @@ function CheckoutInner() {
             Pay the merchant and earn a portable attestation in the same signature.
           </p>
 
+          {lockedMode && (
+            <div className="mt-4 flex items-start gap-3 rounded-xl border border-accent/30 bg-accent/10 px-4 py-3">
+              <Lock className="h-4 w-4 text-accent mt-0.5 shrink-0" />
+              <div className="text-sm">
+                <div className="font-medium text-text">
+                  Paying via merchant link{productLabel ? ` · ${productLabel}` : ""}
+                </div>
+                <div className="text-xs text-textMuted mt-0.5">
+                  The amount and recipient are bound to this link. You can&apos;t
+                  edit them.
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="mt-6 space-y-4">
             <div>
               <label className="block text-xs uppercase tracking-wide text-textMuted mb-1">
@@ -301,6 +341,8 @@ function CheckoutInner() {
                 placeholder="Paste the merchant's Solana wallet address"
                 value={merchantInput}
                 onChange={(e) => setMerchantInput(e.target.value)}
+                disabled={lockedMode}
+                className={lockedMode ? "opacity-70 cursor-not-allowed" : ""}
               />
               {merchantAuthority && (
                 <p className="text-xs text-textMuted mt-1 font-mono">
@@ -325,6 +367,8 @@ function CheckoutInner() {
                 step="0.01"
                 value={amountInput}
                 onChange={(e) => setAmountInput(e.target.value)}
+                disabled={lockedMode}
+                className={lockedMode ? "opacity-70 cursor-not-allowed" : ""}
               />
             </div>
 

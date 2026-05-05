@@ -12,6 +12,8 @@ import { PolicyEditor, type DraftRule } from "@/components/proofpay/policy-edito
 import { TxList } from "@/components/proofpay/tx-list";
 import { OnboardPanel } from "@/components/proofpay/onboard-panel";
 import { FaucetCard } from "@/components/proofpay/faucet-card";
+import { PaymentLinkBuilder } from "@/components/proofpay/payment-link-builder";
+import { PaymentWatcher } from "@/components/proofpay/payment-watcher";
 import { useProofPayProgram } from "@/lib/anchor";
 
 interface MerchantState {
@@ -45,6 +47,8 @@ export default function MerchantDashboardPage() {
     loading: false,
     exists: false,
   });
+  // Bumped after a payment link is created so PaymentWatcher reloads from localStorage.
+  const [linkRefreshKey, setLinkRefreshKey] = useState(0);
 
   useEffect(() => {
     if (!publicKey || !program) {
@@ -154,6 +158,12 @@ export default function MerchantDashboardPage() {
             <div className="grid gap-6 md:grid-cols-[1fr,320px] items-start">
               <PolicyEditor />
               <FaucetCard />
+            </div>
+            <div className="grid gap-6 md:grid-cols-2 items-start">
+              <PaymentLinkBuilder
+                onCreated={() => setLinkRefreshKey((k) => k + 1)}
+              />
+              <PaymentWatcher refreshKey={linkRefreshKey} />
             </div>
             <TxList merchantRegistry={state.registry} />
           </>
