@@ -31,7 +31,7 @@ export function Nav() {
             Checkout
           </Link>
           <a
-            href="https://github.com/"
+            href="https://github.com/Vivek23456/proof-pay"
             target="_blank"
             rel="noreferrer"
             className="hover:text-text transition"
