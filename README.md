@@ -34,6 +34,16 @@ flowchart LR
 
 **One Anchor program + one Next.js app + Solana Attestation Service (with internal PDA fallback).** Devnet-first; mainnet next.
 
+## Go-to-market and defensibility
+
+This section is intentionally about *intent and roadmap*, not shipped features. Nothing below is wired into the deployed devnet binary today — these are the answers to the obvious questions about how ProofPay would operate as a business.
+
+**Revenue (roadmapped, not implemented).** A 10 bps protocol fee on `pay_and_attest`, skimmed atomically in the same CPI as the merchant transfer. Merchants would pay nothing to install; ProofPay earns on volume. Linear, fully on-chain auditable, and an order of magnitude cheaper than card-network take rates. Targeted for the mainnet deploy alongside the SAS CPI path.
+
+**Sybil model.** Attestations can only be minted by real USDC payments, so farming N wallets costs N × purchase_minimum in actual spend *and* splits reputation across N accounts — economically self-limiting for small discounts. For merchants who want a hard human-gate, the policy engine is designed to extend with an optional `required_issuer` field; only attestations co-signed by a trusted credential issuer (proof-of-human, KYC, or any SAS-issued schema) would count toward the discount threshold. The field is on the roadmap, not in the deployed binary.
+
+**Distribution.** ProofPay is designed to ship through existing Solana Pay processors and stablecoin-native wallet networks rather than direct-to-merchant — each processor partnership would unlock an entire merchant book with a single one-instruction integration. Zero processors are signed today; this is post-hackathon GTM.
+
 ## Repository layout
 
 ```
