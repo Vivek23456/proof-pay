@@ -8,7 +8,10 @@ import { Toaster } from "sonner";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "ProofPay — portable reputation for Solana merchants",
+  title: {
+    default: "ProofPay — portable reputation for Solana merchants",
+    template: "%s · ProofPay",
+  },
   description:
     "Pay any Solana merchant in USDC. Earn a portable on-chain attestation. Get an auto-applied discount at the next merchant that trusts your history.",
 };
