@@ -1,4 +1,5 @@
-import { LighthouseBeam } from "./lighthouse-beam";
+import { FloatingCoin } from "./floating-coin";
+import { NetworkPackets } from "./network-packets";
 
 /**
  * Site-wide ambient layer. Renders behind every page (z-index -10, pointer
@@ -7,11 +8,15 @@ import { LighthouseBeam } from "./lighthouse-beam";
  *   1. Two large blurry gradient orbs that drift slowly across the viewport.
  *   2. A faint SVG "globe" — meridians + parallels — that rotates over a minute.
  *   3. A subtle dot grid that gives the site a faint tech texture.
- *   4. A lighthouse beacon at the bottom-left whose beam sweeps the page,
- *      with scattered "pings" that flare as the beam passes (radar feel).
+ *   4. A USDC coin that floats around the viewport on a wandering path,
+ *      spinning on its vertical axis (the headline "moving object" — clearly
+ *      visible in the margins around content).
+ *   5. Periodic "payment packets" — bright dots with glowing trails that
+ *      shoot across the screen at varied angles, like money flying through
+ *      the network.
  *
- * All effects are pure CSS animations driven by tailwind keyframes — no JS,
- * no reflow, GPU-friendly transforms only.
+ * All effects are pure CSS animations — no JS, no reflow, GPU-friendly
+ * transforms only.
  */
 export function AmbientBackground() {
   return (
@@ -109,8 +114,11 @@ export function AmbientBackground() {
         </svg>
       </div>
 
-      {/* Lighthouse beacon (bottom-left) + sweeping beam + scattered pings. */}
-      <LighthouseBeam />
+      {/* Money in motion — a wandering USDC coin and recurring payment
+          packets streaking across the viewport. These two are the
+          "headline" motion: highly visible vs. the very subtle orbs/globe. */}
+      <FloatingCoin />
+      <NetworkPackets />
     </div>
   );
 }

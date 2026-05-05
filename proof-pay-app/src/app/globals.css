@@ -97,3 +97,171 @@ body {
     transform: translate(50%, -50%) scale(2.6);
   }
 }
+
+/* ===================================================================
+   Floating USDC coin
+   ===================================================================
+   Wandering orbit + 3D spin. Two faces with backface-visibility:hidden
+   give a real coin illusion as it rotates around the Y axis. The orbit
+   uses vw/vh translate keyframes so the coin always traces the same
+   visual path regardless of viewport size. */
+
+.floating-coin {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 80px;
+  height: 80px;
+  margin-left: -40px;
+  margin-top: -40px;
+  pointer-events: none;
+  perspective: 800px;
+  filter: drop-shadow(0 12px 32px rgba(39, 117, 202, 0.45));
+  opacity: 0.9;
+  animation: coin-orbit 28s ease-in-out infinite;
+}
+
+@keyframes coin-orbit {
+  0% {
+    transform: translate(15vw, 80vh);
+  }
+  20% {
+    transform: translate(38vw, 22vh);
+  }
+  40% {
+    transform: translate(78vw, 58vh);
+  }
+  60% {
+    transform: translate(88vw, 18vh);
+  }
+  80% {
+    transform: translate(48vw, 72vh);
+  }
+  100% {
+    transform: translate(15vw, 80vh);
+  }
+}
+
+.floating-coin .coin-spin {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  animation: coin-spin 5s linear infinite;
+}
+
+@keyframes coin-spin {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(360deg);
+  }
+}
+
+.floating-coin .coin-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  box-shadow:
+    inset 0 -10px 18px rgba(0, 0, 0, 0.35),
+    inset 0 6px 12px rgba(255, 255, 255, 0.35),
+    0 0 32px rgba(39, 117, 202, 0.5);
+}
+
+.floating-coin .coin-front {
+  background: radial-gradient(
+    circle at 30% 30%,
+    #7ab8e8 0%,
+    #2775ca 55%,
+    #1a4f8c 100%
+  );
+  color: white;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.floating-coin .coin-back {
+  background: radial-gradient(
+    circle at 70% 70%,
+    #6ba3d6 0%,
+    #1a4f8c 70%
+  );
+  transform: rotateY(180deg);
+}
+
+/* ===================================================================
+   Network packets
+   ===================================================================
+   Each launcher is a horizontal strip rotated by some angle. Inside,
+   the packet animates translateX(-12vw → 118vw), so it enters from
+   off-screen left, crosses the viewport on the rotated axis, and exits
+   off-screen right. The trailing box-shadow uses negative-X offsets so
+   it naturally points "behind" the packet — and rotates with the
+   launcher, so the trail aligns with direction of travel.
+
+   The packet is visible only for ~22% of its 6 s loop (the other 78% it
+   sits hidden off-screen). Six packets with staggered delays produce
+   roughly one packet per second on screen. */
+
+.network-packets {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.network-packets .packet-launcher {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  transform-origin: 0 50%;
+}
+
+.network-packets .packet {
+  position: absolute;
+  top: 0;
+  display: block;
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow:
+    0 0 12px 4px rgba(124, 92, 255, 0.9),
+    -18px 0 24px 6px rgba(124, 92, 255, 0.55),
+    -38px 0 32px 6px rgba(124, 92, 255, 0.25),
+    -60px 0 40px 6px rgba(124, 92, 255, 0.1);
+  opacity: 0;
+  animation: packet-fly 6s linear infinite;
+}
+
+@keyframes packet-fly {
+  0% {
+    opacity: 0;
+    transform: translateX(-12vw);
+  }
+  4% {
+    opacity: 1;
+  }
+  22% {
+    opacity: 1;
+    transform: translateX(118vw);
+  }
+  23% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(118vw);
+  }
+}
