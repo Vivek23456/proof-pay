@@ -9,6 +9,9 @@
  * Six packets staggered on a 6 s loop produce roughly one packet every
  * second — continuous "live" traffic that feels like money moving across
  * the network. Pure CSS, no JS, no extra deps.
+ *
+ * Hidden on mobile (`hidden md:block`) — six concurrent box-shadow trails
+ * tank low-end phone GPUs.
  */
 
 interface Packet {
@@ -30,7 +33,7 @@ const PACKETS: Packet[] = [
 
 export function NetworkPackets() {
   return (
-    <div aria-hidden className="network-packets">
+    <div aria-hidden className="hidden md:block network-packets">
       {PACKETS.map((p, i) => (
         <div
           key={i}

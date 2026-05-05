@@ -64,15 +64,19 @@ export function AmbientBackground() {
         }}
       />
 
-      {/* Slow-rotating "network globe" anchored bottom-right. A sphere drawn
-          as meridians + parallels with a soft inner glow, brighter rim, and
-          a handful of pulsing "data nodes" (green hubs) on its surface — a
-          stylized world-map-of-payments. Spins once a minute and is wrapped
-          in a drop-shadow that bleeds purple haze into the corner. */}
+      {/* Slow-rotating "network globe" — desktop-only. Anchored to the right
+          edge and vertically centred, sized to ~90vh and pushed ~18% of its
+          width off-screen so the visible portion fills roughly the right
+          half of the viewport. White data nodes pulse on the surface; the
+          whole sphere is wrapped in a drop-shadow that bleeds a purple
+          haze into the right side of every page.
+
+          Hidden on mobile (`hidden md:block`) — the SVG, drop-shadow filter
+          and 12 SMIL animations were the biggest source of mobile lag. */}
       <div
-        className="absolute -right-32 -bottom-32 h-[540px] w-[540px] opacity-[0.55] animate-slow-spin md:h-[720px] md:w-[720px]"
+        className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-[18%] h-[90vh] w-[90vh] opacity-[0.5] animate-slow-spin"
         style={{
-          filter: "drop-shadow(0 0 60px rgba(124, 92, 255, 0.35))",
+          filter: "drop-shadow(0 0 100px rgba(124, 92, 255, 0.32))",
         }}
       >
         <svg
@@ -138,7 +142,7 @@ export function AmbientBackground() {
             />
           ))}
 
-          {/* Pulsing data nodes — green "merchant hubs" scattered on the
+          {/* Pulsing data nodes — white "merchant hubs" scattered on the
               sphere. Each is two layered circles: a soft halo (Gaussian
               blur) and a bright core. SMIL animations stagger the pulses
               so they fire at different times and the surface always has
@@ -149,13 +153,13 @@ export function AmbientBackground() {
                 cx={n.x}
                 cy={n.y}
                 r="3"
-                fill="#3ecf8e"
+                fill="#ffffff"
                 opacity="0.4"
                 filter="url(#node-glow)"
               >
                 <animate
                   attributeName="opacity"
-                  values="0.15;0.55;0.15"
+                  values="0.15;0.6;0.15"
                   dur="3s"
                   begin={`${i * 0.5}s`}
                   repeatCount="indefinite"
@@ -168,10 +172,10 @@ export function AmbientBackground() {
                   repeatCount="indefinite"
                 />
               </circle>
-              <circle cx={n.x} cy={n.y} r="1.1" fill="#3ecf8e">
+              <circle cx={n.x} cy={n.y} r="1.1" fill="#ffffff">
                 <animate
                   attributeName="opacity"
-                  values="0.7;1;0.7"
+                  values="0.75;1;0.75"
                   dur="3s"
                   begin={`${i * 0.5}s`}
                   repeatCount="indefinite"
