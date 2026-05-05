@@ -4,9 +4,13 @@ import { useEffect } from "react";
 import { motion, useSpring, useTransform } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { CardBody, CardContainer, CardItem } from "@/components/ui/3d-card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {
   attestationCount: bigint | null;
+  /** When true and `attestationCount` is null, render the loading shimmer
+   *  instead of the "connect wallet" message. */
+  loading?: boolean;
 }
 
 function AnimatedCount({ value }: { value: number }) {
@@ -22,8 +26,23 @@ function AnimatedCount({ value }: { value: number }) {
   return <motion.span>{display}</motion.span>;
 }
 
-export function TrustScoreCard({ attestationCount }: Props) {
+export function TrustScoreCard({ attestationCount, loading }: Props) {
   if (attestationCount === null) {
+    if (loading) {
+      return (
+        <div className="card">
+          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-textMuted">
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>Trust score</span>
+          </div>
+          <div className="mt-4 flex items-baseline gap-2">
+            <Skeleton className="h-12 w-24" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+          <Skeleton className="mt-5 h-8 w-full rounded-xl" />
+        </div>
+      );
+    }
     return (
       <div className="card">
         <h3 className="font-semibold mb-1">Your trust score</h3>

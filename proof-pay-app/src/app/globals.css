@@ -11,6 +11,9 @@ body {
   background: #0b0d12;
   color: #e6e8ef;
   min-height: 100vh;
+  /* Safety net: any descendant that accidentally exceeds the viewport width
+     (e.g. long base58 pubkeys, QR cards) won't trigger horizontal page scroll. */
+  overflow-x: hidden;
 }
 
 body {
@@ -18,7 +21,14 @@ body {
 }
 
 .card {
-  @apply bg-surface border border-border rounded-2xl p-6;
+  @apply bg-surface border border-border rounded-2xl p-6 transition-all duration-200 ease-out;
+}
+
+/* Subtle hover lift on cards. Framer-motion `whileHover` on the few cards
+   that customize this (landing) overrides via inline transform — no conflict. */
+.card:hover {
+  @apply border-accent/30 shadow-[0_18px_40px_-24px_rgba(124,92,255,0.45)];
+  transform: translateY(-2px);
 }
 
 .card-raised {

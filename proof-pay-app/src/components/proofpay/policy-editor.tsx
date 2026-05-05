@@ -134,12 +134,12 @@ export function PolicyEditor() {
         ))}
       </div>
 
-      <div className="mt-6 flex items-center justify-between">
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-textMuted">
           Saved as <span className="font-mono text-text">MerchantRegistry.policy</span> on
           chain. Re-saving overwrites all rules.
         </p>
-        <Button onClick={handleSave} isLoading={busy}>
+        <Button onClick={handleSave} isLoading={busy} className="shrink-0">
           Save policy
         </Button>
       </div>

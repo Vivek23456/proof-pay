@@ -40,23 +40,34 @@ function relativeTime(ms: number): string {
 }
 
 function StatusBadge({ status }: { status: PendingLink["status"] }) {
+  // `key={status}` forces remount on transition so the pop-in animation plays
+  // each time the badge changes (waiting → paid).
   if (status === "paid") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-success/15 text-success text-xs px-2 py-0.5">
+      <span
+        key="paid"
+        className="inline-flex items-center gap-1 rounded-full bg-success/15 text-success text-xs px-2 py-0.5 animate-pop-in"
+      >
         <CheckCircle2 className="h-3 w-3" /> Paid
       </span>
     );
   }
   if (status === "expired") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-danger/15 text-danger text-xs px-2 py-0.5">
+      <span
+        key="expired"
+        className="inline-flex items-center gap-1 rounded-full bg-danger/15 text-danger text-xs px-2 py-0.5 animate-pop-in"
+      >
         <XCircle className="h-3 w-3" /> Expired
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 text-warning text-xs px-2 py-0.5">
-      <Clock className="h-3 w-3 animate-pulse" /> Waiting
+    <span
+      key="waiting"
+      className="inline-flex items-center gap-1 rounded-full bg-warning/15 text-warning text-xs px-2 py-0.5"
+    >
+      <Clock className="h-3 w-3 animate-pulse-soft" /> Waiting
     </span>
   );
 }
@@ -152,7 +163,7 @@ export function PaymentWatcher({ refreshKey }: Props) {
 
   return (
     <section className="card">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="font-semibold">Pending payments</h3>
         <span className="text-xs text-textMuted">
           {links.filter((l) => l.status === "pending").length} waiting · polling

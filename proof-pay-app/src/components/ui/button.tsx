@@ -2,6 +2,7 @@
 
 import { forwardRef, type ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/cn";
+import { Spinner } from "./spinner";
 
 type Variant = "primary" | "ghost" | "danger";
 
@@ -11,7 +12,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<Variant, string> = {
-  primary: "bg-accent text-white hover:bg-accent/90",
+  primary:
+    "bg-accent text-white hover:bg-accent/90 shadow-[0_8px_24px_-12px_rgba(124,92,255,0.6)] hover:shadow-[0_12px_32px_-12px_rgba(124,92,255,0.8)]",
   ghost: "bg-transparent text-text border border-border hover:bg-surfaceRaised",
   danger: "bg-danger text-white hover:bg-danger/90",
 };
@@ -22,13 +24,21 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       ref={ref}
       disabled={disabled || isLoading}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed",
+        "group relative inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ease-out",
+        "active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100",
         variantClasses[variant],
         className,
       )}
       {...props}
     >
-      {isLoading ? "…" : children}
+      {isLoading ? (
+        <>
+          <Spinner />
+          <span>Working…</span>
+        </>
+      ) : (
+        children
+      )}
     </button>
   ),
 );

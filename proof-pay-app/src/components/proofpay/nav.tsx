@@ -20,7 +20,13 @@ export function Nav() {
             <BadgeCheck className="h-5 w-5 text-white" strokeWidth={2.25} />
           </span>
           <span className="font-semibold tracking-tight">ProofPay</span>
-          <span className="chip ml-2">devnet</span>
+          <span className="chip ml-2 hidden sm:inline-flex gap-1.5">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-success opacity-75 animate-ping" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
+            </span>
+            devnet
+          </span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-6 text-sm text-textMuted">

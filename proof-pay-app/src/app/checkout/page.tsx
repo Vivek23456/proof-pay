@@ -372,7 +372,7 @@ function CheckoutInner() {
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-3 pt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
               <div className="stat">
                 <span className="stat-label">Full price</span>
                 <span className="stat-value text-lg">{formatUsdc(quote.fullAmount)}</span>
@@ -407,7 +407,10 @@ function CheckoutInner() {
         </section>
 
         <aside className="space-y-4">
-          <TrustScoreCard attestationCount={attestationCount} />
+          <TrustScoreCard
+            attestationCount={attestationCount}
+            loading={connected && attestationCount === null}
+          />
 
           <FaucetCard />
 

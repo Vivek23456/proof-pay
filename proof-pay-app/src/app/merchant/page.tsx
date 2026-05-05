@@ -14,6 +14,7 @@ import { OnboardPanel } from "@/components/proofpay/onboard-panel";
 import { FaucetCard } from "@/components/proofpay/faucet-card";
 import { PaymentLinkBuilder } from "@/components/proofpay/payment-link-builder";
 import { PaymentWatcher } from "@/components/proofpay/payment-watcher";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useProofPayProgram } from "@/lib/anchor";
 
 interface MerchantState {
@@ -138,13 +139,20 @@ export default function MerchantDashboardPage() {
           </div>
           <div className="stat">
             <span className="stat-label">Registry status</span>
-            <span className="stat-value text-base">
-              {state.loading
-                ? "Loading…"
-                : state.exists
-                  ? "Registered"
-                  : "Not registered"}
-            </span>
+            {state.loading ? (
+              <Skeleton className="h-6 w-28 mt-1" />
+            ) : (
+              <span className="stat-value text-base flex items-center gap-2">
+                {state.exists ? (
+                  <>
+                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-success animate-pulse-soft" />
+                    Registered
+                  </>
+                ) : (
+                  "Not registered"
+                )}
+              </span>
+            )}
           </div>
         </section>
 
