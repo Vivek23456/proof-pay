@@ -16,6 +16,15 @@ body {
   overflow-x: hidden;
 }
 
+/* Force <body> to form its own stacking context so the AmbientBackground
+   layer (z-index: -10) — which holds the floating USDC coin, network
+   packets, drifting orbs, globe and dot grid — renders ABOVE body's solid
+   background, not behind it. Without this, every negative-z child of body
+   would be obscured by the body's #0b0d12 bg and never become visible. */
+body {
+  isolation: isolate;
+}
+
 body {
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
