@@ -147,7 +147,24 @@ body {
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
+  /* Fallback for browsers without scroll-driven animation support
+     (e.g. older Safari): a continuous 5 s time-based spin so the coin
+     still feels alive on those engines. */
   animation: coin-spin 5s linear infinite;
+}
+
+/* Scroll-driven rotation. In supporting browsers (Chrome / Edge 115+,
+   Firefox 134+) the coin spins as the user scrolls the page and freezes
+   when scrolling stops — one full document scroll ≈ two rotations.
+   `animation-timeline: scroll(root)` ties the animation progress to the
+   document's vertical scroll position; the time-based fallback above is
+   ignored when this block applies. */
+@supports (animation-timeline: scroll()) {
+  .floating-coin .coin-spin {
+    animation: coin-spin 1s linear;
+    animation-timeline: scroll(root block);
+    animation-iteration-count: 2;
+  }
 }
 
 @keyframes coin-spin {
