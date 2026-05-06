@@ -1,5 +1,18 @@
-import { Connection, Keypair, PublicKey } from "@solana/web3.js";
-import { USDC_DECIMALS } from "./config";
+import { utils } from "@coral-xyz/anchor";
+import {
+  Connection,
+  Keypair,
+  PartiallyDecodedInstruction,
+  PublicKey,
+} from "@solana/web3.js";
+import { PROGRAM_ID, USDC_DECIMALS } from "./config";
+
+const PAY_AND_ATTEST_DISCRIMINATOR = Uint8Array.from([
+  21, 55, 107, 251, 19, 220, 128, 149,
+]);
+const PAY_AND_ATTEST_TREASURY_ACCOUNT_INDEX = 6;
+const PAY_AND_ATTEST_AMOUNT_OFFSET = PAY_AND_ATTEST_DISCRIMINATOR.length;
+const U64_BYTE_LENGTH = 8;
 
 /**
  * A merchant-issued payment link. Stored locally so the merchant can poll
@@ -170,5 +183,69 @@ export async function verifyPayment(
   }
 
   const delta = balanceFor("post") - balanceFor("pre");
-  return delta >= minAmountAtomic;
+  if (delta >= minAmountAtomic) return true;
+
+  // Discounted ProofPay checkouts credit the merchant with the net amount, not
+  // the gross invoice amount. Accept that lower delta only when the transaction
+  // is a successful ProofPay payment instruction for the exact invoice amount
+  // and the merchant's treasury ATA.
+  return (
+    delta > 0n &&
+    tx.transaction.message.instructions.some((ix) =>
+      isMatchingPayAndAttestInstruction(ix, treasuryAta, minAmountAtomic),
+    )
+  );
+}
+
+function isMatchingPayAndAttestInstruction(
+  ix: unknown,
+  treasuryAta: PublicKey,
+  amountAtomic: bigint,
+): boolean {
+  if (!isPartiallyDecodedInstruction(ix)) return false;
+  if (!ix.programId.equals(PROGRAM_ID)) return false;
+  if (
+    !ix.accounts[PAY_AND_ATTEST_TREASURY_ACCOUNT_INDEX]?.equals(treasuryAta)
+  ) {
+    return false;
+  }
+
+  let data: Uint8Array;
+  try {
+    data = utils.bytes.bs58.decode(ix.data);
+  } catch {
+    return false;
+  }
+
+  const expectedLength = PAY_AND_ATTEST_AMOUNT_OFFSET + U64_BYTE_LENGTH;
+  if (data.length !== expectedLength) return false;
+
+  for (let i = 0; i < PAY_AND_ATTEST_DISCRIMINATOR.length; i += 1) {
+    if (data[i] !== PAY_AND_ATTEST_DISCRIMINATOR[i]) return false;
+  }
+
+  const encodedAmount = data.subarray(
+    PAY_AND_ATTEST_AMOUNT_OFFSET,
+    expectedLength,
+  );
+  let decodedAmount = 0n;
+  for (let i = 0; i < encodedAmount.length; i += 1) {
+    decodedAmount |= BigInt(encodedAmount[i]) << BigInt(i * 8);
+  }
+  return decodedAmount === amountAtomic;
+}
+
+function isPartiallyDecodedInstruction(
+  ix: unknown,
+): ix is PartiallyDecodedInstruction {
+  return (
+    typeof ix === "object" &&
+    ix !== null &&
+    "programId" in ix &&
+    (ix as { programId?: unknown }).programId instanceof PublicKey &&
+    "accounts" in ix &&
+    Array.isArray((ix as { accounts?: unknown }).accounts) &&
+    "data" in ix &&
+    typeof (ix as { data?: unknown }).data === "string"
+  );
 }
