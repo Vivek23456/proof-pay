@@ -19,15 +19,15 @@ export function OnboardPanel() {
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const { connection } = useConnection();
-  const { publicKey } = useWallet();
-  const { program, provider } = useProofPayProgram();
+  const { publicKey, sendTransaction } = useWallet();
+  const { program } = useProofPayProgram();
 
   async function handleRegister() {
     if (!name.trim()) {
       toast.error("Merchant name is required");
       return;
     }
-    if (!publicKey || !program || !provider) {
+    if (!publicKey || !program) {
       toast.error("Connect a wallet first");
       return;
     }
@@ -37,10 +37,15 @@ export function OnboardPanel() {
       const [registry] = merchantRegistryPda(publicKey);
       const treasuryAta = getAssociatedTokenAddressSync(USDC_MINT, publicKey);
 
-      const tx = new Transaction();
+      // Step 1: Create ATA if needed — separate tx
       const ataInfo = await connection.getAccountInfo(treasuryAta);
       if (!ataInfo) {
-        tx.add(
+        const ataTx = new Transaction();
+        ataTx.feePayer = publicKey;
+        const ataLatest = await connection.getLatestBlockhash("finalized"); // ← finalized for longer validity
+        ataTx.recentBlockhash = ataLatest.blockhash;
+
+        ataTx.add(
           createAssociatedTokenAccountInstruction(
             publicKey,
             treasuryAta,
@@ -48,10 +53,29 @@ export function OnboardPanel() {
             USDC_MINT,
           ),
         );
+
+        const ataSig = await sendTransaction(ataTx, connection, {
+          skipPreflight: false,
+          maxRetries: 5,                                                     // ← retry on devnet slowness
+        });
+        await connection.confirmTransaction(
+          {
+            signature: ataSig,
+            blockhash: ataLatest.blockhash,
+            lastValidBlockHeight: ataLatest.lastValidBlockHeight,
+          },
+          "confirmed",
+        );
       }
 
+      // Step 2: Register merchant — separate tx
+      const tx = new Transaction();
+      tx.feePayer = publicKey;
+      const latest = await connection.getLatestBlockhash("finalized");      // ← finalized for longer validity
+      tx.recentBlockhash = latest.blockhash;
+
       const registerIx = await program.methods
-        .registerMerchant(name)
+        .registerMerchant(name.trim())
         .accounts({
           authority: publicKey,
           registry,
@@ -60,14 +84,30 @@ export function OnboardPanel() {
           systemProgram: SystemProgram.programId,
         })
         .instruction();
+
       tx.add(registerIx);
 
-      const sig = await provider.sendAndConfirm(tx);
+      const sig = await sendTransaction(tx, connection, {
+        skipPreflight: false,
+        maxRetries: 5,                                                       // ← retry on devnet slowness
+      });
+      await connection.confirmTransaction(
+        {
+          signature: sig,
+          blockhash: latest.blockhash,
+          lastValidBlockHeight: latest.lastValidBlockHeight,
+        },
+        "confirmed",
+      );
+
       toast.success("Merchant registered", {
         description: `Signature: ${sig.slice(0, 12)}…`,
       });
     } catch (err) {
       console.error(err);
+      if (err instanceof Error && 'logs' in err) {
+        console.error("Program logs:", (err as any).logs);
+      }
       toast.error("Register failed", {
         description: err instanceof Error ? err.message : String(err),
       });
