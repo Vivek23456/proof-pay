@@ -186,6 +186,10 @@ Run them with `cargo test --manifest-path tests/Cargo.toml`.
 - [Solana Pay](https://docs.solanapay.com) — the payment rail.
 - [Anchor](https://www.anchor-lang.com), [LiteSVM](https://github.com/LiteSVM/litesvm) — program dev + test.
 
+## Demo Video 
+[![Watch demo](https://img.youtube.com/vi/Y6Ina2ZAals/0.jpg)](https://youtu.be/Y6Ina2ZAals)
+
+
 ## License
 
 MIT.
