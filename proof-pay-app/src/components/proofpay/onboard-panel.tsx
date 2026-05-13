@@ -8,6 +8,7 @@ import {
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
 import { toast } from "sonner";
+import { CheckCircle2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,8 @@ import { merchantRegistryPda } from "@/lib/pda";
 export function OnboardPanel() {
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [busyLabel, setBusyLabel] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
   const { program } = useProofPayProgram();
@@ -33,6 +36,8 @@ export function OnboardPanel() {
     }
 
     setBusy(true);
+    setSuccessMessage(null);
+    setBusyLabel("Preparing transaction…");
     try {
       const [registry] = merchantRegistryPda(publicKey);
       const treasuryAta = getAssociatedTokenAddressSync(USDC_MINT, publicKey);
@@ -40,6 +45,7 @@ export function OnboardPanel() {
       // Step 1: Create ATA if needed — separate tx
       const ataInfo = await connection.getAccountInfo(treasuryAta);
       if (!ataInfo) {
+        setBusyLabel("Creating USDC associated account…");
         const ataTx = new Transaction();
         ataTx.feePayer = publicKey;
         const ataLatest = await connection.getLatestBlockhash("finalized"); // ← finalized for longer validity
@@ -69,6 +75,7 @@ export function OnboardPanel() {
       }
 
       // Step 2: Register merchant — separate tx
+      setBusyLabel("Registering merchant on-chain…");
       const tx = new Transaction();
       tx.feePayer = publicKey;
       const latest = await connection.getLatestBlockhash("finalized");      // ← finalized for longer validity
@@ -91,6 +98,7 @@ export function OnboardPanel() {
         skipPreflight: false,
         maxRetries: 5,                                                       // ← retry on devnet slowness
       });
+      setBusyLabel("Confirming transaction…");
       await connection.confirmTransaction(
         {
           signature: sig,
@@ -103,6 +111,8 @@ export function OnboardPanel() {
       toast.success("Merchant registered", {
         description: `Signature: ${sig.slice(0, 12)}…`,
       });
+      setSuccessMessage("Transaction confirmed — merchant onboarded!");
+      setBusyLabel(null);
     } catch (err) {
       console.error(err);
       if (err instanceof Error && 'logs' in err) {
@@ -113,6 +123,7 @@ export function OnboardPanel() {
       });
     } finally {
       setBusy(false);
+      setBusyLabel(null);
     }
   }
 
@@ -138,6 +149,21 @@ export function OnboardPanel() {
         <Button onClick={handleRegister} isLoading={busy} className="mt-2">
           Register merchant
         </Button>
+
+        {busyLabel ? (
+          <div className="rounded-2xl border border-border bg-surfaceRaised px-4 py-3 text-sm text-textMuted animate-pulse">
+            {busyLabel}
+          </div>
+        ) : null}
+
+        {successMessage ? (
+          <div className="rounded-2xl border border-success/20 bg-success/10 px-4 py-3 text-base font-semibold text-success animate-pop-in">
+            <div className="inline-flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              <span>{successMessage}</span>
+            </div>
+          </div>
+        ) : null}
       </div>
     </section>
   );
