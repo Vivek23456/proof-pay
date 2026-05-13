@@ -14,8 +14,11 @@ import { OnboardPanel } from "@/components/proofpay/onboard-panel";
 import { FaucetCard } from "@/components/proofpay/faucet-card";
 import { PaymentLinkBuilder } from "@/components/proofpay/payment-link-builder";
 import { PaymentWatcher } from "@/components/proofpay/payment-watcher";
+import { MerchantHistory } from "@/components/proofpay/merchant-history";
+import { Leaderboard } from "@/components/proofpay/leaderboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProofPayProgram } from "@/lib/anchor";
+import type { TxRow } from "@/components/proofpay/tx-list";
 
 interface MerchantState {
   registry: PublicKey | null;
@@ -39,6 +42,7 @@ interface MerchantRegistryRaw {
 export default function MerchantDashboardPage() {
   const { publicKey, connected } = useWallet();
   const { program } = useProofPayProgram();
+  const [txRows, setTxRows] = useState<TxRow[]>([]);
   const [state, setState] = useState<MerchantState>({
     registry: null,
     name: null,
@@ -48,7 +52,6 @@ export default function MerchantDashboardPage() {
     loading: false,
     exists: false,
   });
-  // Bumped after a payment link is created so PaymentWatcher reloads from localStorage.
   const [linkRefreshKey, setLinkRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -173,7 +176,17 @@ export default function MerchantDashboardPage() {
               />
               <PaymentWatcher refreshKey={linkRefreshKey} />
             </div>
-            <TxList merchantRegistry={state.registry} />
+            <TxList
+              merchantRegistry={state.registry}
+              onDataLoaded={setTxRows}
+            />
+            <MerchantHistory txRows={txRows} />
+            <div className="grid gap-6 md:grid-cols-2 items-start">
+              <Leaderboard
+                merchantRegistry={state.registry}
+                txRows={txRows}
+              />
+            </div>
           </>
         )}
       </div>
